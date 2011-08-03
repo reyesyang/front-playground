@@ -1,0 +1,13 @@
+* {
+	padding: 0;
+	margin: 0;
+}
+
+#image {
+	width: 500px;
+	height: 500px;
+	border: 1px solid silver;
+	position: relative;
+	top: 50px;
+	left: 200px;
+}

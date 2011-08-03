@@ -1,0 +1,54 @@
+* 
+{
+	margin: 0;
+	padding: 0:
+}
+
+body {
+	min-width: 960px;
+}
+
+#container 
+{
+	height: 600px;
+	width: 600px;
+	border: 1px solid silver;
+	margin: 50px 0 0 200px;
+	/*margin: 50px auto;*/
+}
+
+#first 
+{
+	background-color: Black;
+	height: 20px;
+	width: 20px;
+	position: absolute;
+}
+
+.cell 
+{
+	float: left;
+	width: 19px;
+	height: 19px;
+	border-width: 0 1px 1px 0;
+	border-style: solid;
+	border-color: silver;
+}
+
+#info {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+.image {
+	position: absolute;
+	border: 1px solid blue;
+}
+
+#image0 {
+	border: 1px solid red;
+}
+
+#image1 {
+	border: 1px solid blue;
+}
