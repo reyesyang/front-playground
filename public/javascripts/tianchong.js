@@ -1,11 +1,11 @@
-﻿var ContainerWidth = 600;
+﻿var ContainerWidth = 1260;
 var ContainerHeight = 600;
 var ContainerMarginTop = 50;
-var ContainerMarginLeft = 200;
+var ContainerMarginLeft = 10;
 var CellWidth = 20;
 var CellHeight = 20;
 var RowCount = 30;
-var ColumnCount = 30;
+var ColumnCount = 63;
 var LeftTopPoint_x = 0;
 var LeftTopPoint_y = 0;
 var CellArray = new Array();
@@ -18,14 +18,16 @@ function Container(width, height) {
 	this.height = height;
 	this.left_top_point = null;
 	this.center_point = null;
+	this.cell_array = new Array();
 
 	if(typeof Container._initialized == "undefined") {
 		Container.prototype.initializeCells = function() {
 			for (var row = 0; row < this.height; row++) {
 				for (var col = 0; col < this.width; col++) {
 					$("#container").append("<div class=\"cell\"></div>");
-					var cell_position = new ContainerPoint(row, col);
+					var cell_position = new ContainerPoint(col, row);
 					CellArray[row * ColumnCount + col] = new Cell(cell_position);
+					this.cell_array[row * this.width + col] = new Cell(cell_position);
 				}
 			}
 		}
@@ -64,27 +66,33 @@ function Container(width, height) {
 		Container.prototype.fillFromCenter = function(image) {
 			var iterate_count = Math.max(this.center_point.x, this.center_point.y);
 			for(var count = 0; count < iterate_count; count++) {
-				var left_top_point = new ContainerPoint(this.center_point.x - 1, this.center_point.y - 1);
-				if(this.isValidPoint(left_top_point)) {
-					image.put();
+				var iterate_count_for_edge = 2 * count + 1;
+
+				//check the top edge
+				var left_top_point_x = this.center_point.x - count;
+				var left_top_point_y = this.center_point.y - count;
+				for( var index = left_top_point_index; index < left_top_point_index + iterate_count_for_edge; index++) {
+					var point_on_top_edge = new ContainerPoint(j
+				if(this.isValidPoint(image, left_top_point)) {
+					this.putImage(image, left_top_point);
 					break;
 				}
 
-				var right_top_point = new ContainerPoint(this.center_point.x + 1, this.center_point.y -1);
-				if(this.isValidPoint(right_top_point)) {
-					image.put();
+				var right_top_point = new ContainerPoint(this.center_point.x + count, this.center_point.y - count);
+				if(this.isValidPoint(image, right_top_point)) {
+					this.putImage(image, right_top_point);
 					break;
 				}
 
-				var right_bottom_point = new ContainerPoint(this.center_point.x + 1, this.center_point.y + 1);
-				if(this.isValidPoint(right_bottom_point)) {
-					image.put();
+				var right_bottom_point = new ContainerPoint(this.center_point.x + count, this.center_point.y + count);
+				if(this.isValidPoint(image, right_bottom_point)) {
+					this.putImage(image, right_bottom_point);
 					break;
 				}
 
-				var left_bottom_point = new ContainerPoint(this.center_point.x - 1, this.center_point.y + 1);
-				if(this.isValidPoint(left_bottom_point)) {
-					image.put();
+				var left_bottom_point = new ContainerPoint(this.center_point.x - count, this.center_point.y + count);
+				if(this.isValidPoint(image, left_bottom_point)) {
+					this.putImage(image, left_bottom_point);
 					break;
 				}
 			}
@@ -92,10 +100,35 @@ function Container(width, height) {
 	}
 	
 	if(typeof Container._initialized == "undefined") {
-		Container.prototype.isValidPoint = function(point) {
+		Container.prototype.isValidPoint = function(image, point) {
 			//check out of bound
+			if(point.x + image.width > this.width || point.y + image.height > this.height) {
+				return false;
+			}
 
 			//check conflict with other image
+      for(var row = point.y; row < point.y + image.height; row++) {
+				for( var col = point.x; col < point.x + image.width; col++) {
+					var cell = this.cell_array[row * this.width + col];
+					if(cell.belong_to != null){
+						return false;
+					}
+				}
+			}
+
+			return true;
+		}
+	}
+
+	if(typeof Container._initialized == "undefined") {
+		Container.prototype.putImage = function(image, point) {
+			for(var row = point.y; row < point.y + image.height; row++) {
+				for(var col = point.x; col < point.x + image.width; col++) {
+					this.cell_array[row * this.width + col].belong_to = image;
+				}
+			}
+
+			image.display(point.screen_x, point.screen_y);
 		}
 	}
 
@@ -131,10 +164,53 @@ function ContainerPoint(x, y) {
 		ContainerPoint._initialized = true;
 	}
 }
-
-//Like static method
-
 ////End Point class
+
+////Word class
+function Word() {
+	this.max_height = 7;
+	this.min_height = 1;
+	this.width = 0;
+	this.height = Math.max(this.min_height, Math.round(Math.random() * this.max_height));
+	this.screen_height = this.height * CellHeight;
+	this.place_holder = $("<div class=\"word\">");
+	this.place_holder.hide();
+	this.place_holder.height(this.screen_height);
+	this.place_holder.css("position", "absolute");
+
+	this.words_array=["America", "Britain", "China", "Danmark", "France", "Germany"];
+	this.color_array=["red", "yellow", "blue", "black", "silver", "gray"];
+	this.word = this.words_array[Math.round(Math.random() * (this.words_array.length - 1))];
+	this.color = this.color_array[Math.round(Math.random() * (this.color_array.length - 1))];
+	this.place_holder.css("font-size", this.screen_height);
+	this.place_holder.append(this.word);
+	this.place_holder.css("color", this.color);
+	this.place_holder.appendTo("body");
+	this.width = Math.ceil(this.place_holder.width() /CellWidth);
+	this.screen_width = this.width * CellWidth;
+	this.place_holder.width(this.screen_width);
+
+	if(typeof Word._initialized == "undefined") {
+		Word.prototype.getWidth = function() {
+			this.place_holder.appendTo("body");
+			this.width = Math.ceil(this.place_holder.width() / CellWidth) * CellWidth;
+		}
+	}
+
+	if(typeof Word._initialized == "undefined") {
+		Word.prototype.display = function(screen_x, screen_y) {
+			this.place_holder.css("left", screen_x);
+			this.place_holder.css("top", screen_y);
+			this.place_holder.show();
+		}
+	}
+
+	if(typeof Word._initialized == "undefined") {
+		Word._initialized = true;
+	}
+}
+
+////end Word class
 
 //Image class
 function Image(width, height) {
@@ -236,11 +312,19 @@ function positionTestCell() {
 
 // When document ready to run
 $(document).ready(function () {
-	var container = new Container(RowCount, ColumnCount);
+	var container = new Container(ColumnCount, RowCount);
 	container.getLeftTopPosition();
 	$("#info").append(container.left_top_point.print());
 	container.getCenterPoint();
 	$("#info").append(container.center_point.print());
+	container.initializeCells();	
+	
+	for(var count = 0; count < 10000; count++) {
+		var word = new Word();
+		//word.display(0, 100);
+		//$("#info").append("width: " + word.width + ", height: " + word.height);
+		container.fillFromCenter(word);
+	}
 	/*container.getLeftTopPosition();
   container.initializeCells();
   run();

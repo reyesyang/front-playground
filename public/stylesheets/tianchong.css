@@ -10,10 +10,15 @@ body {
 
 #container 
 {
+	/*height: 600px;
+	width: 600px;*/
+	/*border: 1px solid silver;*/
+	width: 1260px;
+	border-width: 1px 0 0 1px;
+	border-style: solid;
+	border-color: silver;
+	margin: 50px 0 0 10px;
 	height: 600px;
-	width: 600px;
-	border: 1px solid silver;
-	margin: 50px 0 0 200px;
 	/*margin: 50px auto;*/
 }
 
@@ -45,10 +50,10 @@ body {
 	border: 1px solid blue;
 }
 
-#image0 {
-	border: 1px solid red;
+.word {
+	border: 1px solid blue;
 }
 
-#image1 {
-	border: 1px solid blue;
+.clear {
+	clear: both;
 }
