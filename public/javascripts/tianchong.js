@@ -56,8 +56,8 @@ function Container(width, height) {
 	
 	if(typeof Container._initialized == "undefined") {
 		Container.prototype.getCenterPoint = function() {
-			var x = Math.ceil(this.width / 2) - 1;
-			var y = Math.ceil(this.height / 2) -1;
+			var x = Math.ceil(this.width / 2);
+			var y = Math.ceil(this.height / 2);
 			this.center_point = new ContainerPoint(x, y);
 		}
 	}
@@ -65,42 +65,72 @@ function Container(width, height) {
 	if(typeof Container._initialized == "undefined") {
 		Container.prototype.fillFromCenter = function(image) {
 			var iterate_count = Math.max(this.center_point.x, this.center_point.y);
-			for(var count = 0; count < iterate_count; count++) {
+
+			for(var count = 0; count <= iterate_count; count++) {
 				var iterate_count_for_edge = 2 * count + 1;
 
 				//check the top edge
 				var left_top_point_x = this.center_point.x - count;
 				var left_top_point_y = this.center_point.y - count;
-				for( var index = left_top_point_index; index < left_top_point_index + iterate_count_for_edge; index++) {
-					var point_on_top_edge = new ContainerPoint(j
-				if(this.isValidPoint(image, left_top_point)) {
-					this.putImage(image, left_top_point);
-					break;
+				for( var x = left_top_point_x; x < left_top_point_x + iterate_count_for_edge; x++) {
+					var point_on_top_edge = new ContainerPoint(x, left_top_point_y);
+
+          if(this.isValidPoint(image, point_on_top_edge)) {
+            this.putImage(image, point_on_top_edge);
+            return true;
+          }
+        }
+
+				//check the right edge
+        var right_top_point_x = this.center_point.x + count;
+        var right_top_point_y = this.center_point.y - count;
+        
+        for(var y = right_top_point_y; y < right_top_point_y + iterate_count_for_edge; y++) {
+          var point_on_right_edge = new ContainerPoint(right_top_point_x, y);
+				
+          if(this.isValidPoint(image, point_on_right_edge)) {
+					  this.putImage(image, point_on_right_edge);
+					  return true;
+          }
 				}
 
-				var right_top_point = new ContainerPoint(this.center_point.x + count, this.center_point.y - count);
-				if(this.isValidPoint(image, right_top_point)) {
-					this.putImage(image, right_top_point);
-					break;
-				}
+				//check the bottom edge
+        var right_bottom_point_x = this.center_point.x + count;
+        var right_bottom_point_y = this.center_point.y + count;
 
-				var right_bottom_point = new ContainerPoint(this.center_point.x + count, this.center_point.y + count);
-				if(this.isValidPoint(image, right_bottom_point)) {
-					this.putImage(image, right_bottom_point);
-					break;
-				}
+        for(var x = right_bottom_point_x; x > right_bottom_point_x - iterate_count_for_edge; x--) {
+          var point_on_bottom_edge = new ContainerPoint(x, right_bottom_point_y);
+				
+          if(this.isValidPoint(image, point_on_bottom_edge)) {
+            this.putImage(image, point_on_bottom_edge);
+            return true;;
+				  }
+        }
 
-				var left_bottom_point = new ContainerPoint(this.center_point.x - count, this.center_point.y + count);
-				if(this.isValidPoint(image, left_bottom_point)) {
-					this.putImage(image, left_bottom_point);
-					break;
+        //check the left edge
+        var left_bottom_point_x = this.center_point.x - count;
+        var left_bottom_point_y = this.center_point.y + count;
+
+        for(var y = left_bottom_point_y; y > left_bottom_point_y - iterate_count_for_edge; y--) {
+          var point_on_left_edge = new ContainerPoint(left_bottom_point_x, y);
+				
+          if(this.isValidPoint(image, point_on_left_edge)) {
+					  this.putImage(image, point_on_left_edge);
+					  return true;
+          }
 				}
 			}
+
+      return false;
 		}
 	}
 	
 	if(typeof Container._initialized == "undefined") {
 		Container.prototype.isValidPoint = function(image, point) {
+      if(point.x < 0 || point.y < 0) {
+        return false;
+      }
+
 			//check out of bound
 			if(point.x + image.width > this.width || point.y + image.height > this.height) {
 				return false;
@@ -312,19 +342,39 @@ function positionTestCell() {
 
 // When document ready to run
 $(document).ready(function () {
-	var container = new Container(ColumnCount, RowCount);
+  var start_date = new Date();
+	var start_time = start_date.getTime();
+  var covered = 0;
+  var container = new Container(ColumnCount, RowCount);
 	container.getLeftTopPosition();
-	$("#info").append(container.left_top_point.print());
+  //$("#info").append(container.left_top_point.print());
 	container.getCenterPoint();
-	$("#info").append(container.center_point.print());
-	container.initializeCells();	
+	//$("#info").append(container.center_point.print());
+	container.initializeCells();
+  var container_area = container.width * container.height;
+	var cover_rate = covered / container_area;
 	
-	for(var count = 0; count < 10000; count++) {
+	var fill_date = new Date();
+	var fill_time = fill_date.getTime();
+	for(var count = 0; count < 200; count++) {
+  //while(cover_rate < 0.9) {
 		var word = new Word();
 		//word.display(0, 100);
 		//$("#info").append("width: " + word.width + ", height: " + word.height);
-		container.fillFromCenter(word);
+	  var fill = container.fillFromCenter(word);
+    if(fill) {
+      covered += word.width * word.height;
+      cover_rate = covered / container_area;
+    }
 	}
+  
+  var end_date = new Date();
+  var end_time = end_date.getTime();
+  var info = $("#info");
+  info.append("Cost tims[ms]: " + (end_time - start_time));
+	info.append(" Fill cost time[ms]: " + (end_time - fill_time));
+  info.append("<br/>Cover rate: " + cover_rate * 100 + "%");
+
 	/*container.getLeftTopPosition();
   container.initializeCells();
   run();
